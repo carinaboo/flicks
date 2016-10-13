@@ -70,22 +70,49 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     let movie = movies![(indexPath as NSIndexPath).row]
     let title = movie["title"] as! String
     let overview = movie["overview"] as! String
-    
-    var imageUrl: URL
-    if let path = movie["poster_path"] as? String {
-      let posterPath = path
-      let baseUrl = "http://image.tmdb.org/t/p/w500"
-      imageUrl = URL(string: baseUrl + posterPath)!
-    } else {
-      imageUrl = URL(string: "http://healthflexhhs.com/wp-content/uploads/2014/12/tomatoes-vine.jpg")!
-    }
-    
+    let imageURL = posterImageURL(for: movie)
+
     cell.titleLabel.text = title
     cell.overviewLabel.text = overview
-    cell.posterView.setImageWith(imageUrl)
+    cell.posterView.setImageWith(imageURL)
     
     print("row \((indexPath as NSIndexPath).row)")
     return cell
   }
+  
+// MARK: UITableViewDelegate
 
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    tableView.deselectRow(at: indexPath, animated: true)
+  }
+
+// MARK: Segue
+  
+  override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+    if (segue.identifier == "MovieCellToMovieDetails") {
+      let movieDetailsVC = segue.destination as! MovieDetailsViewController
+      let indexPath = self.tableView.indexPath(for: sender as! UITableViewCell)
+      let movie = self.movies![(indexPath?.row)!]
+      let imageURL = posterImageURL(for: movie)
+      movieDetailsVC.moviePosterURL = imageURL
+      movieDetailsVC.movieTitle = movie["title"] as! String
+      movieDetailsVC.movieOverview = movie["overview"] as! String
+      movieDetailsVC.movieRating = movie["vote_average"] as! Float
+      movieDetailsVC.movieReleaseDate = movie["release_date"] as! String
+    }
+  }
+
+// MARK: Private
+  
+  func posterImageURL(for movie: NSDictionary) -> URL {
+    var imageURL: URL
+    if let path = movie["poster_path"] as? String {
+      let baseUrl = "http://image.tmdb.org/t/p/w500"
+      imageURL = URL(string: baseUrl + path)!
+    } else {
+      imageURL = URL(string: "http://healthflexhhs.com/wp-content/uploads/2014/12/tomatoes-vine.jpg")!
+    }
+    return imageURL
+  }
+  
 }
