@@ -6,7 +6,7 @@
 * [x] User can view a list of movies currently playing in theaters from The Movie Database. Poster images must be loaded asynchronously.
 * [x] User can view movie details by tapping on a cell.
 * [x] User sees loading state while waiting for movies API. You can use one of the 3rd party libraries listed on CocoaControls.
-* [ ] User sees an error message when there's a networking error. You may not use UIAlertController or a 3rd party library to display the error. See this screenshot for what the error message should look like.
+* [x] User sees an error message when there's a networking error. You may not use UIAlertController or a 3rd party library to display the error. See this screenshot for what the error message should look like.
 * [x] User can pull to refresh the movie list.
 
 ### Optional
@@ -19,6 +19,12 @@
 * [ ] Customize the navigation bar. (low)
 
 ## Log
+
+### V1
+
+Th Oct 13: Finished the required user stories (early because I'm visiting my parents this weekend ^_^). Having issues with inner workings of positioning network error--the table shifts all it's cells down to make room for the network error label even when it's hidden. I manually set the tableView.contentInset. tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0) seem to be not based on parent container view...it positions differently on load than after a pull to refresh.
+
+![V0](https://raw.githubusercontent.com/carinaboo/flicks/master/Demo/FlicksV1.gif)
 
 ### V0
 

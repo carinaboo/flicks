@@ -13,6 +13,7 @@ import SwiftSpinner
 class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
   @IBOutlet var tableView: UITableView!
+  @IBOutlet weak var networkErrorLabel: UILabel!
   
   var movies: [NSDictionary]?
   
@@ -22,11 +23,30 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     tableView.dataSource = self;
     tableView.delegate = self;
     
-    SwiftSpinner.show("Getting movies...")
-    
-    getMoviesNowPlaying {
-      self.tableView.reloadData()
-      SwiftSpinner.hide()
+    if Reachability.isConnectedToNetwork() == true {
+      print("Internet connection OK")
+      
+      networkErrorLabel.isHidden = true;
+      
+      SwiftSpinner.show("Getting movies...")
+      
+      let successHandler = { () -> () in
+        let edgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        self.tableView.contentInset = edgeInsets
+        self.tableView.scrollIndicatorInsets = edgeInsets
+        
+        self.tableView.reloadData()
+        SwiftSpinner.hide()
+      }
+      let errorHandler = { () -> () in
+        self.networkErrorLabel.isHidden = false;
+        SwiftSpinner.hide()
+      }
+      getMoviesNowPlaying(successHandler: successHandler, errorHandler: errorHandler)
+    } else {
+      print("Internet connection FAILED")
+      
+      networkErrorLabel.isHidden = false;
     }
     
     let refreshControl = UIRefreshControl()
@@ -35,10 +55,22 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
   }
   
   func refreshControlAction(refreshControl:UIRefreshControl) {
-    getMoviesNowPlaying {
+    networkErrorLabel.isHidden = true;
+    
+    let successHandler = { () -> () in
+      let edgeInsets = UIEdgeInsets(top: 60, left: 0, bottom: 0, right: 0)
+      self.tableView.contentInset = edgeInsets
+      self.tableView.scrollIndicatorInsets = edgeInsets
+      
       self.tableView.reloadData()
       refreshControl.endRefreshing()
     }
+    let errorHandler = { () -> () in
+      self.networkErrorLabel.isHidden = false;
+      SwiftSpinner.hide()
+      refreshControl.endRefreshing()
+    }
+    getMoviesNowPlaying(successHandler: successHandler, errorHandler: errorHandler)
   }
 
   override func didReceiveMemoryWarning() {
@@ -96,7 +128,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
 
 // MARK: Private
   
-  func getMoviesNowPlaying(handler: @escaping () -> ()) {
+  func getMoviesNowPlaying(successHandler: @escaping () -> (), errorHandler: @escaping () -> ()) {
     let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
     let url = URL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
     let request = URLRequest(
@@ -118,8 +150,10 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
           
           self.movies = responseDictionary["results"] as? [NSDictionary]
           
-          handler()
+          successHandler()
         }
+      } else {
+        errorHandler()
       }
     })
     task.resume()
