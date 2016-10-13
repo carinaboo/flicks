@@ -14,13 +14,16 @@ PODS:
   - AFNetworking/Serialization (3.1.0)
   - AFNetworking/UIKit (3.1.0):
     - AFNetworking/NSURLSession
+  - SwiftSpinner (1.0.2)
 
 DEPENDENCIES:
   - AFNetworking
+  - SwiftSpinner
 
 SPEC CHECKSUMS:
   AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
+  SwiftSpinner: 1c80ff6ea1c47e2faa1dfce0fcd5e6b39a47fd51
 
-PODFILE CHECKSUM: 1ea8bbbd435d920532d5aa7ca02d32e55acf904a
+PODFILE CHECKSUM: f5060e0cdb19b837351b959a4d7d0e58865fb4c9
 
 COCOAPODS: 1.1.0.rc.3

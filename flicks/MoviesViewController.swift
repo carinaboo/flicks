@@ -8,6 +8,7 @@
 
 import UIKit
 import AFNetworking
+import SwiftSpinner
 
 class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
@@ -21,32 +22,23 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     tableView.dataSource = self;
     tableView.delegate = self;
     
-    let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-    let url = URL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
-    let request = URLRequest(
-      url: url!,
-      cachePolicy: NSURLRequest.CachePolicy.reloadIgnoringLocalCacheData,
-      timeoutInterval: 10)
+    SwiftSpinner.show("Getting movies...")
     
-    let session = URLSession(
-      configuration: URLSessionConfiguration.default,
-      delegate: nil,
-      delegateQueue: OperationQueue.main
-    )
+    getMoviesNowPlaying {
+      self.tableView.reloadData()
+      SwiftSpinner.hide()
+    }
     
-    let task: URLSessionDataTask = session.dataTask(with: request, completionHandler: { (dataOrNil, response, error) in
-      if let data = dataOrNil {
-        if let responseDictionary = try! JSONSerialization.jsonObject(
-          with: data, options:[]) as? NSDictionary {
-          print("response: \(responseDictionary)")
-          
-          self.movies = responseDictionary["results"] as? [NSDictionary]
-          self.tableView.reloadData()
-        }
-      }
-    })
-    task.resume()
-
+    let refreshControl = UIRefreshControl()
+    refreshControl.addTarget(self, action: #selector(refreshControlAction(refreshControl:)), for: UIControlEvents.valueChanged)
+    tableView.insertSubview(refreshControl, at: 0)
+  }
+  
+  func refreshControlAction(refreshControl:UIRefreshControl) {
+    getMoviesNowPlaying {
+      self.tableView.reloadData()
+      refreshControl.endRefreshing()
+    }
   }
 
   override func didReceiveMemoryWarning() {
@@ -103,6 +95,35 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
   }
 
 // MARK: Private
+  
+  func getMoviesNowPlaying(handler: @escaping () -> ()) {
+    let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
+    let url = URL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
+    let request = URLRequest(
+      url: url!,
+      cachePolicy: NSURLRequest.CachePolicy.reloadIgnoringLocalCacheData,
+      timeoutInterval: 10)
+    
+    let session = URLSession(
+      configuration: URLSessionConfiguration.default,
+      delegate: nil,
+      delegateQueue: OperationQueue.main
+    )
+    
+    let task: URLSessionDataTask = session.dataTask(with: request, completionHandler: { (dataOrNil, response, error) in
+      if let data = dataOrNil {
+        if let responseDictionary = try! JSONSerialization.jsonObject(
+          with: data, options:[]) as? NSDictionary {
+          print("response: \(responseDictionary)")
+          
+          self.movies = responseDictionary["results"] as? [NSDictionary]
+          
+          handler()
+        }
+      }
+    })
+    task.resume()
+  }
   
   func posterImageURL(for movie: NSDictionary) -> URL {
     var imageURL: URL
